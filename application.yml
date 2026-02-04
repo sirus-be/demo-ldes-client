@@ -1,0 +1,69 @@
+orchestrator:
+  pipelines:
+    - name: ldes-to-triplestore
+      description: "This pipeline will read LDES, optionally transform or filter, and send to a triple store"
+      input:
+        name: Ldio:LdesClient
+        config:
+          urls:
+            - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_observaties_lucht
+            # - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_emissies_lucht
+            # - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_emissiepunten_lucht # Not available yet
+            # - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_observaties_water
+            # - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_emissies_water
+            # - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_emissiepunten_water # Not available yet
+            # - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_observaties_lucht
+            # - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_netto_observaties_water
+            # - https://api-tst.vmm.vlaanderen.be/ldes/data/v1/imjv_exploitaties # Not available yet
+            # - https://ldes.telraam-api.net/measurements/by-page
+            # - https://ldes.telraam-api.net/locations/by-page
+            # - https://ca-westtoerwin-nginx-prod.livelyisland-1fa58ea1.westeurope.azurecontainerapps.io/touristattractions
+          #sourceFormat: text/turtle
+          state: sqlite
+          keep-state: true
+          materialisation:
+            enabled: false
+          timestamp-path: http://www.w3.org/ns/prov#generatedAtTime	
+          retries:
+            enabled: true
+            max: 4
+            statuses-to-retry: 403
+          rate-limit:
+            enabled: true
+            limit: 12
+            period: PT1M
+      transformers:
+        - name: Ldio:SparqlConstructTransformer
+          config:
+            query: |
+              PREFIX prov: <http://www.w3.org/ns/prov#>
+              PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+              PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+              PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+              PREFIX dcterms: <http://purl.org/dc/terms/>
+              CONSTRUCT {
+                ?s ?p ?o .
+              }
+              WHERE {
+                ?s ?p ?o .
+              }
+      outputs:
+        - name: Ldio:ConsoleOut
+          config:
+            rdf-writer:
+              content-type: text/turtle
+        - name: Ldio:HttpSparqlOut
+          config:
+            endpoint: http://database:8890/sparql
+            graph: http://mu.semte.ch/application
+            replacement:
+              enabled: false
+              depth: 1
+            retries:
+              enabled: true
+              max: 10
+              statuses-to-retry: 400, 403, 404
+            rate-limit:
+              enabled: true
+              limit: 30000
+              period: PT1M
