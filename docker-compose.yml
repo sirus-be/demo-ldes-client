@@ -1,10 +1,12 @@
 services:
   ldio:
-    image: ldes/ldi-orchestrator:2.12.0-SNAPSHOT
+    image: ldes/ldi-orchestrator:2.14.0
     ports:
       - 8081:8080
     volumes:
       - ./application.yml:/ldio/application.yml:ro
+      - ./startup.sh:/mnt/data/startup.sh:ro
+    command: /bin/sh /mnt/data/startup.sh
     networks:
       - ldes
     depends_on:
