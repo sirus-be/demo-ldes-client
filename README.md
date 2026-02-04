@@ -111,7 +111,8 @@ Relevant for the Westtoer LDES with touristic attractions:
 
 ```
 PREFIX geosparql: <http://www.opengis.net/ont/geosparql#>
-prefix locn: <http://www.w3.org/ns/locn#>
+PREFIX locn: <http://www.w3.org/ns/locn#>
+PREFIX bif: <http://www.openlinksw.com/schemas/bif#>
 
 SELECT ?s ?geom ?dist
 WHERE {
@@ -129,3 +130,10 @@ WHERE {
 }
 ORDER BY ?dist
 ```
+
+### Try Comunica
+
+* Open `https://query.comunica.dev/`
+* Add your data source: `http://localhost:8890/sparql`
+* Add your SPARQL query
+* Execute query
